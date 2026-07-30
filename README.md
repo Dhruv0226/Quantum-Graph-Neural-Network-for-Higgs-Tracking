@@ -1,9 +1,18 @@
-Quantum Graph Neural Network for Higgs Tracking
-A research notebook exploring quantum-inspired Graph Neural Networks (GNNs) for reconstructing particle tracks and identifying Higgs boson decay signatures in high-energy physics detector data, benchmarked against a classical GNN baseline.
-The project models detector hits as graphs — nodes are individual hits, edges connect spatially nearby hits — and trains both a quantum-inspired and a classical model side by side to compare tracking performance.
+<div align="center">
+⚛️ Quantum Graph Neural Network for Higgs Tracking
+Quantum-inspired vs. classical GNNs for particle track reconstruction on real CERN Open Data
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-GNN-EE4C2C?logo=pytorch&logoColor=white)
+![PyTorch Geometric](https://img.shields.io/badge/PyG-Graph%20Learning-3C2179)
+![Colab](https://img.shields.io/badge/Run%20on-Google%20Colab-F9AB00?logo=googlecolab&logoColor=white)
+![License](https://img.shields.io/badge/license-see%20LICENSE-lightgrey)
+</div>
 ---
-What's in this repo
-This is a single, self-contained Google Colab notebook (`HiggsTracking (4).ipynb`), plus zipped exports of the data, trained models, checkpoints, and results produced by running it.
+A research notebook exploring quantum-inspired Graph Neural Networks (GNNs) for reconstructing particle tracks and identifying Higgs boson decay signatures in high-energy physics detector data, benchmarked head-to-head against a classical GNN baseline.
+The project models detector hits as graphs — nodes are individual hits, edges connect spatially nearby hits — and trains both a quantum-inspired and a classical model under identical conditions to compare tracking performance.
+---
+📦 What's in this repo
+This is a single, self-contained Google Colab notebook, plus zipped exports of the data, trained models, checkpoints, and results produced by running it.
 ```
 .
 ├── HiggsTracking (4).ipynb          # Main notebook — the entire pipeline
@@ -14,49 +23,51 @@ This is a single, self-contained Google Colab notebook (`HiggsTracking (4).ipynb
 ├── LICENSE
 └── README.md
 ```
-> The zip files are direct exports from the Google Drive folder the notebook uses for storage (`/content/drive/MyDrive/Higgs_Track_Filter`), so their timestamps reflect when the notebook was last run rather than a formal release.
+> 💡 The zip files are direct exports from the Google Drive folder the notebook uses for storage (`/content/drive/MyDrive/Higgs_Track_Filter`), so their timestamps reflect when the notebook was last run rather than a formal release.
 ---
-How the notebook is organized
-The notebook runs top-to-bottom as a single pipeline, organized into these sections:
-Setup — mounts Google Drive, installs `torch-geometric` and `uproot`, sets a fixed random seed (`42`) for reproducibility.
-Google Drive manager — a small utility class that creates/manages the project's working directories, and falls back to local storage automatically if not running in Colab.
-Data generation — a `CERNOpenDataDownloader` that pulls public datasets from the CERN Open Data Portal, including Higgs→4-lepton, Higgs→tau-tau, and CMS track collections.
-Hit-to-graph conversion — a `GraphProcessor` that turns raw detector hits into graphs: node features are `x, y, z, pt, layer, significance`, edges are built between the `k` nearest neighbors within a configurable distance threshold, and features are standardized before training.
-Quantum-inspired model — a `QuantumInspiredLayer` that mimics qubit-style rotations and entanglement using classical tensor operations (parameterized `sin`/`tanh` transforms rather than an actual quantum circuit or simulator like Qiskit/PennyLane), embedded inside a graph neural network.
-Training — a `RobustTrainer` class handling the training loop, validation, early stopping, and metric tracking (loss, accuracy, F1, precision, recall) for both models.
-Visualization — a `HiggsVisualizer` that renders 3D particle tracks (Matplotlib/Plotly), colored by track significance.
-Main pipeline — `main()` ties everything together: downloads data, builds graphs, trains a quantum-inspired model and a classical baseline under the same conditions, and returns both models with their metrics for comparison. Runtime settings (batch size, epochs, hidden dimension, event count) automatically scale down on CPU and up on GPU.
-Saving outputs — trained weights are saved to Google Drive under `QuantumGNN_HiggsTracking/models`.
+🧭 Pipeline overview
+The notebook runs top-to-bottom as a single pipeline:
+Stage	What happens
+1. Setup	Mounts Google Drive, installs `torch-geometric` & `uproot`, fixes random seed (`42`)
+2. Drive manager	Creates/manages project directories; falls back to local storage outside Colab
+3. Data generation	`CERNOpenDataDownloader` pulls public datasets — Higgs→4ℓ, Higgs→ττ, CMS tracks — from the CERN Open Data Portal
+4. Hit → graph	`GraphProcessor` builds graphs from hits: node features `x, y, z, pt, layer, significance`; edges via k-nearest-neighbors within a distance threshold; features standardized
+5. Quantum-inspired model	`QuantumInspiredLayer` mimics qubit rotation/entanglement using differentiable `sin`/`tanh` tensor ops, embedded in a GNN
+6. Training	`RobustTrainer` runs the training loop with early stopping and tracks loss, accuracy, F1, precision, recall
+7. Visualization	`HiggsVisualizer` renders 3D particle tracks (Matplotlib/Plotly), colored by significance
+8. Main pipeline	`main()` downloads data, builds graphs, and trains both models side by side — settings auto-scale for CPU vs. GPU
+9. Saving	Trained weights saved to Google Drive under `QuantumGNN_HiggsTracking/models`
 ---
-Tech stack
-Python 3, run via Google Colab (GPU: T4)
-PyTorch + PyTorch Geometric — GNN implementation
-uproot — reading physics data formats
-NumPy / pandas / scikit-learn — preprocessing and metrics
-Matplotlib / Plotly — 3D track visualization
+🛠️ Tech stack
+Category	Tools
+Language / Runtime	Python 3, Google Colab (GPU: T4)
+Deep learning	PyTorch, PyTorch Geometric
+Physics data	uproot
+Data & metrics	NumPy, pandas, scikit-learn
+Visualization	Matplotlib, Plotly
 ---
-Running it
-The notebook was built to run in Google Colab with minimal setup:
+🚀 Running it
 Open `HiggsTracking (4).ipynb` in Google Colab.
-Run the cells in order. The first code cell will mount your Google Drive — accept the authorization prompt.
-The dependency cell installs `torch-geometric` and `uproot`; the rest of the notebook runs after that.
-Data is downloaded automatically from the CERN Open Data Portal on first run and cached locally / to Drive for subsequent runs.
-The notebook detects whether a GPU is available and adjusts batch size, epoch count, and hidden dimensions accordingly, so it's usable on CPU-only runtimes as well (with smaller event counts).
-To run it locally instead of Colab, the `GoogleDriveManager` class falls back to a local `./Higgs_Track_Filter` directory automatically — you'll just need PyTorch, PyTorch Geometric, uproot, and the other libraries above installed in your environment.
+Run the cells in order — the first will mount your Google Drive (accept the auth prompt).
+The dependency cell installs `torch-geometric` and `uproot`.
+Data downloads automatically from the CERN Open Data Portal on first run and is cached for subsequent runs.
+GPU vs. CPU is auto-detected, adjusting batch size, epochs, and hidden dimensions accordingly — so it runs on CPU too, just with fewer events.
+Running locally instead of Colab? The `GoogleDriveManager` class falls back to a local `./Higgs_Track_Filter` directory automatically. You'll just need PyTorch, PyTorch Geometric, uproot, and the other libraries above installed.
 ---
-Results
-Training produces, per run:
+📊 Results
+Each run produces:
 A trained quantum-inspired GNN and a trained classical GNN, saved as separate checkpoints
-Validation metrics (loss, accuracy, precision, recall, F1) tracked per epoch for both
+Per-epoch validation metrics (loss, accuracy, precision, recall, F1) for both models
 3D visualizations of reconstructed particle tracks colored by significance
-See the `results-*.zip` archive for the metrics and plots from the notebook's most recent run.
+See `results-*.zip` for metrics and plots from the most recent run.
 ---
-Notes & limitations
-The "quantum" component is quantum-inspired, not executed on real or simulated quantum hardware — it approximates qubit rotation/entanglement behavior using standard differentiable tensor operations, which keeps the whole pipeline runnable on CPU/GPU without a quantum computing framework.
-This is a research/learning project rather than a packaged library — there's no `train.py` entry point or `requirements.txt`; everything lives in the notebook.
+⚠️ Notes & limitations
+The "quantum" component is quantum-inspired, not run on real or simulated quantum hardware — it approximates qubit rotation/entanglement behavior with standard differentiable tensor operations, keeping the whole pipeline runnable on ordinary CPU/GPU without a quantum computing framework.
+This is a research/learning project, not a packaged library — there's no `train.py` entry point or `requirements.txt`; everything lives in the notebook.
 ---
-Author
-Dhruv Chaudhari — VIT Bhopal University
-Forked from kaustubh2204/Quantum-Graph-Neural-Network-for-Higgs-Tracking.
-License
+👥 Authors
+This project was built collaboratively as part of the original kaustubh2204/Quantum-Graph-Neural-Network-for-Higgs-Tracking repository.
+Dhruv Chaudhari — Collaborator, VIT Bhopal University
+This repo is a fork used for continued development; see the original repository above for the full contributor history.
+📄 License
 See LICENSE for details.
